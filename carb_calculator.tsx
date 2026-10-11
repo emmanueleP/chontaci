@@ -133,7 +133,7 @@ export const CarbCalculator: React.FC = () => {
               type="number"
               placeholder="Es. 130"
               value={currentBg}
-              onChange={(e) => setCurrentBg(e.target.value === '' ? '' : Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentBg(e.target.value === '' ? '' : Number(e.target.value))}
               style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #475569', background: '#0f172a', color: '#fff' }}
             />
           </div>
