@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ContaCarbo - Calcolatore Carboidrati & Bolo Diabete</title>
+  
+  <!-- Apple iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ContaCarbo">
+  <meta name="theme-color" content="#0d1117">
+  
+  <!-- SEO & Social Sharing -->
+  <meta name="description" content="App web per iPhone ottimizzata per la conta dei carboidrati e il calcolo del bolo insulinico nel diabete, con database alimenti italiani e funzionamento offline.">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.json">
+  
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app-container" class="app-shell">
+    
+    <!-- Top Header / Navigation Bar -->
+    <header class="app-header" id="main-header">
+      <div class="header-left">
+        <div class="app-logo-badge" id="logo-badge">
+          <img src="./apple-touch-icon.png" alt="Logo ContaCarbo" class="header-logo-img">
+        </div>
+        <div class="header-titles">
+          <h1 class="header-app-name">ContaCarbo</h1>
+          <span class="header-subtitle" id="current-meal-label">Pranzo • Diabete CHO</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="icon-btn" id="install-guide-btn" title="Guida installazione iPhone" aria-label="Istruzioni iPhone">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" id="theme-toggle-btn" title="Cambia tema chiaro/scuro" aria-label="Toggle tema">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area with Views -->
+    <main class="main-content" id="main-content-scroll">
+      
+      <!-- ==============================================
+           TAB 1: CALCOLATORE PASTO CORRENTE & BOLO
+           ============================================== -->
+      <section id="tab-calculator" class="tab-view active-view">
+        
+        <!-- Meal Type Selector Pills -->
+        <div class="meal-selector-container">
+          <div class="meal-pills" id="meal-pills-list">
+            <button type="button" class="meal-pill-btn" data-meal="colazione" id="pill-colazione">
+              <span class="pill-icon">☕</span> Colazione
+            </button>
+            <button type="button" class="meal-pill-btn active" data-meal="pranzo" id="pill-pranzo">
+              <span class="pill-icon">🍝</span> Pranzo
+            </button>
+            <button type="button" class="meal-pill-btn" data-meal="cena" id="pill-cena">
+              <span class="pill-icon">🍲</span> Cena
+            </button>
+            <button type="button" class="meal-pill-btn" data-meal="spuntino" id="pill-spuntino">
+              <span class="pill-icon">🍏</span> Spuntino
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Carbohydrate Card -->
+        <div class="hero-metric-card" id="hero-carb-card">
+          <div class="hero-glow"></div>
+          <div class="hero-top-row">
+            <div class="hero-label-group">
+              <span class="hero-badge">CONTEGGIO TOTALE</span>
+              <span class="hero-title">Carboidrati Pasto</span>
+            </div>
+            <div class="hero-item-count" id="hero-items-count">0 alimenti</div>
+          </div>
+          
+          <div class="hero-main-stat">
+            <span class="hero-number" id="total-carbs-number">0.0</span>
+            <span class="hero-unit">g CHO</span>
+          </div>
+
+          <!-- Secondary Macro Metrics -->
+          <div class="macros-grid">
+            <div class="macro-cell">
+              <span class="macro-title">Zuccheri</span>
+              <span class="macro-val" id="macro-sugars">0.0 g</span>
+            </div>
+            <div class="macro-cell">
+              <span class="macro-title">Calorie</span>
+              <span class="macro-val" id="macro-calories">0 kcal</span>
+            </div>
+            <div class="macro-cell">
+              <span class="macro-title">Proteine</span>
+              <span class="macro-val" id="macro-proteins">0.0 g</span>
+            </div>
+            <div class="macro-cell">
+              <span class="macro-title">Grassi</span>
+              <span class="macro-val" id="macro-fats">0.0 g</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insulin Bolus Calculator Card (Active when enabled) -->
+        <div class="bolus-card" id="bolus-calculator-card">
+          <div class="bolus-card-header">
+            <div class="bolus-title-group">
+              <div class="bolus-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="bolus-card-title">Calcolo Bolo Insulina</h2>
+                <span class="bolus-ratio-hint" id="bolus-ratio-hint">Rapporto I:C = 1U ogni 10g CHO</span>
+              </div>
+            </div>
+            <button type="button" class="text-link-btn" id="toggle-bolus-details-btn">Dettagli</button>
+          </div>
+
+          <div class="bolus-content-body">
+            <!-- Blood Glucose Input -->
+            <div class="bg-input-row">
+              <div class="bg-field">
+                <label for="current-bg-input" class="bg-label">Glicemia attuale (mg/dL)</label>
+                <div class="bg-input-wrapper">
+                  <input type="number" id="current-bg-input" placeholder="Es. 130" min="40" max="500" step="1" inputmode="numeric">
+                  <span class="bg-input-unit">mg/dL</span>
+                </div>
+              </div>
+              <div class="bg-status-badge" id="bg-status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text" id="bg-status-text">Inserisci glicemia</span>
+              </div>
+            </div>
+
+            <!-- Calculated Bolus Display -->
+            <div class="bolus-result-box" id="bolus-result-box">
+              <div class="bolus-result-left">
+                <span class="bolus-result-label">Bolo Totale Stimato</span>
+                <div class="bolus-result-value">
+                  <span class="bolus-units-number" id="bolus-total-units">0.0</span>
+                  <span class="bolus-units-label">Unità (U)</span>
+                </div>
+              </div>
+              <div class="bolus-breakdown-chips">
+                <div class="breakdown-chip" title="Bolo per i carboidrati">
+                  <span class="chip-label">Pasto:</span>
+                  <span class="chip-val" id="bolus-meal-units">0.0 U</span>
+                </div>
+                <div class="breakdown-chip" title="Bolo di correzione glicemica">
+                  <span class="chip-label">Correzione:</span>
+                  <span class="chip-val" id="bolus-corr-units">+0.0 U</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calculation formula explanation (collapsible) -->
+            <div class="bolus-formula-details" id="bolus-formula-details" style="display: none;">
+              <p class="formula-line" id="formula-meal-text">Pasto: 0g CHO ÷ 10 = 0.0 U</p>
+              <p class="formula-line" id="formula-corr-text">Correzione: (0 - 110 target) ÷ 40 ISF = 0.0 U</p>
+              <p class="medical-disclaimer-mini">⚠️ Valori calcolati a scopo indicativo. Attenersi scrupolosamente alla prescrizione del proprio diabetologo.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meal Items In Plate Section -->
+        <div class="plate-section">
+          <div class="section-header-row">
+            <h2 class="section-title">Alimenti nel Piatto (<span id="plate-items-badge">0</span>)</h2>
+            <div class="plate-header-actions">
+              <button type="button" class="btn-text-danger" id="clear-plate-btn" style="display: none;">Svuota</button>
+              <button type="button" class="btn-primary-mini" id="open-add-food-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Aggiungi
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty plate placeholder -->
+          <div class="empty-state-card" id="plate-empty-state">
+            <div class="empty-icon-circle">🍽️</div>
+            <h3 class="empty-title">Il tuo piatto è vuoto</h3>
+            <p class="empty-desc">Cerca tra centinaia di alimenti italiani o aggiungi i tuoi piatti per calcolare carboidrati e insulina.</p>
+            <button type="button" class="btn-action-primary" id="empty-add-first-food-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Sfoglia Database Cibi
+            </button>
+          </div>
+
+          <!-- Plate items list container -->
+          <ul class="plate-items-list" id="plate-items-list">
+            <!-- Dynamically populated -->
+          </ul>
+
+          <!-- Action buttons for the meal -->
+          <div class="plate-footer-actions" id="plate-footer-actions" style="display: none;">
+            <button type="button" class="btn-secondary-full" id="save-as-frequent-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Salva come Pasto Frequente
+            </button>
+            <button type="button" class="btn-primary-full" id="log-meal-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Registra nel Diario
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==============================================
+           TAB 2: DATABASE ALIMENTI & RICERCA
+           ============================================== -->
+      <section id="tab-database" class="tab-view">
+        <div class="db-header-sticky">
+          <div class="db-search-bar-row">
+            <div class="search-input-box">
+              <svg class="search-glass-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="search" id="food-search-input" placeholder="Cerca es. pasta, mela, pizza, latte..." autocomplete="off">
+              <button type="button" class="clear-search-btn" id="clear-search-btn" style="display: none;">✕</button>
+            </div>
+            <button type="button" class="btn-create-custom" id="open-custom-food-modal-btn" title="Crea Alimento Personalizzato" aria-label="Nuovo alimento">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Nuovo</span>
+            </button>
+          </div>
+
+          <!-- Quick Filters: Categories & Favorites -->
+          <div class="category-scroll-container">
+            <div class="category-pills" id="category-pills-list">
+              <!-- Dynamically populated from FOOD_CATEGORIES -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Food Count / Active Filters bar -->
+        <div class="db-meta-bar">
+          <span class="db-count-text" id="db-filtered-count">Mostrando alimenti...</span>
+          <button type="button" class="fav-filter-chip" id="fav-only-filter-btn">
+            <span class="star-icon">⭐</span> Solo Preferiti
+          </button>
+        </div>
+
+        <!-- Food items list -->
+        <div class="food-cards-list" id="food-cards-container">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TAB 3: DIARIO & PASTI FREQUENTI
+           ============================================== -->
+      <section id="tab-log" class="tab-view">
+        <div class="sub-nav-segmented">
+          <button type="button" class="sub-segment-btn active" id="subtab-history-btn">Cronologia Pasti</button>
+          <button type="button" class="sub-segment-btn" id="subtab-frequent-btn">Pasti Preferiti</button>
+        </div>
+
+        <!-- Panel 1: History of logged meals -->
+        <div class="sub-panel active" id="panel-history">
+          <div class="panel-header-row">
+            <h2 class="section-title">Ultime Registrazioni</h2>
+            <button type="button" class="btn-text-danger" id="clear-history-btn" style="display: none;">Cancella tutto</button>
+          </div>
+          <div class="history-list" id="history-items-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Panel 2: Frequent / Saved meal templates -->
+        <div class="sub-panel" id="panel-frequent">
+          <div class="panel-header-row">
+            <h2 class="section-title">Pasti Frequenti Salvati</h2>
+          </div>
+          <p class="panel-subtitle-hint">Salva combinazioni che mangi spesso per ricaricarle nel piatto in un solo tocco.</p>
+          <div class="frequent-list" id="frequent-items-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TAB 4: IMPOSTAZIONI & GUIDA
+           ============================================== -->
+      <section id="tab-settings" class="tab-view">
+        
+        <div class="settings-group">
+          <h2 class="settings-group-title">Parametri Terapia Insulina</h2>
+          <div class="settings-card">
+            
+            <div class="setting-toggle-row">
+              <div class="setting-info">
+                <span class="setting-name">Calcolatore Bolo</span>
+                <span class="setting-desc">Calcola la stima delle unità di insulina dal totale carboidrati.</span>
+              </div>
+              <label class="ios-switch">
+                <input type="checkbox" id="setting-enable-bolus" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div id="bolus-parameters-group">
+              <!-- Ratio I:C by meal -->
+              <div class="setting-divider"></div>
+              <span class="setting-subheading">Rapporto Insulina/Carboidrati (ICR - g di CHO per 1U)</span>
+
+              <div class="setting-input-row">
+                <span class="meal-sublabel">☕ Colazione</span>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-icr-colazione" value="10" min="1" max="100" step="0.5">
+                  <span class="unit-tag">g/U</span>
+                </div>
+              </div>
+
+              <div class="setting-input-row">
+                <span class="meal-sublabel">🍝 Pranzo</span>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-icr-pranzo" value="10" min="1" max="100" step="0.5">
+                  <span class="unit-tag">g/U</span>
+                </div>
+              </div>
+
+              <div class="setting-input-row">
+                <span class="meal-sublabel">🍲 Cena</span>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-icr-cena" value="10" min="1" max="100" step="0.5">
+                  <span class="unit-tag">g/U</span>
+                </div>
+              </div>
+
+              <div class="setting-input-row">
+                <span class="meal-sublabel">🍏 Spuntino</span>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-icr-spuntino" value="12" min="1" max="100" step="0.5">
+                  <span class="unit-tag">g/U</span>
+                </div>
+              </div>
+
+              <!-- ISF & Target BG -->
+              <div class="setting-divider"></div>
+              <div class="setting-input-row">
+                <div class="setting-info">
+                  <span class="setting-name">Glicemia Obiettivo</span>
+                  <span class="setting-desc">Target glicemico ideale pre-pasto</span>
+                </div>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-bg-target" value="110" min="70" max="200" step="5">
+                  <span class="unit-tag">mg/dL</span>
+                </div>
+              </div>
+
+              <div class="setting-input-row">
+                <div class="setting-info">
+                  <span class="setting-name">Fattore di Sensibilità (ISF)</span>
+                  <span class="setting-desc">Quanto 1 unità abbassa la glicemia</span>
+                </div>
+                <div class="number-input-unit">
+                  <input type="number" id="setting-isf" value="40" min="5" max="200" step="1">
+                  <span class="unit-tag">mg/dL</span>
+                </div>
+              </div>
+
+              <div class="setting-input-row">
+                <div class="setting-info">
+                  <span class="setting-name">Arrotondamento Unità</span>
+                  <span class="setting-desc">Precisione della penna o del microinfusore</span>
+                </div>
+                <select id="setting-bolus-step" class="ios-select">
+                  <option value="0.5">Mezza unità (0.5 U)</option>
+                  <option value="1.0">Unità intera (1.0 U)</option>
+                  <option value="0.1">Microinfusore (0.1 U)</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- iPhone PWA Installation Helper Card -->
+        <div class="settings-group">
+          <h2 class="settings-group-title">Uso su iPhone & GitHub Pages</h2>
+          <div class="settings-card install-card-preview" id="open-iphone-guide-card">
+            <div class="install-banner-content">
+              <div class="install-apple-icon">📱</div>
+              <div>
+                <h3 class="install-banner-title">Come installare come App su iPhone</h3>
+                <p class="install-banner-desc">Apri in Safari, tocca Condividi e seleziona "Aggiungi alla schermata Home" per usarla come app a tutto schermo offline.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-install-see" id="btn-see-iphone-instructions">Vedi Guida</button>
+          </div>
+        </div>
+
+        <!-- Data Backup & Reset -->
+        <div class="settings-group">
+          <h2 class="settings-group-title">Dati & Backup</h2>
+          <div class="settings-card">
+            <div class="backup-actions-grid">
+              <button type="button" class="btn-backup-item" id="export-data-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Esporta Dati (JSON)</span>
+              </button>
+
+              <button type="button" class="btn-backup-item" id="import-data-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Importa Backup</span>
+              </button>
+              <input type="file" id="import-file-input" accept=".json" style="display: none;">
+            </div>
+
+            <div class="setting-divider"></div>
+
+            <button type="button" class="btn-text-danger" id="reset-defaults-btn">
+              Ripristina Database & Impostazioni Iniziali
+            </button>
+          </div>
+        </div>
+
+        <!-- Medical Disclaimer Card -->
+        <div class="medical-disclaimer-box">
+          <div class="disclaimer-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span class="disclaimer-title">Avvertenza Medica Importante</span>
+          </div>
+          <p class="disclaimer-text">
+            ContaCarbo è un supporto per il conteggio dei carboidrati e la stima del fabbisogno insulinico. Non sostituisce il giudizio clinico di un medico. Consulta sempre il tuo diabetologo prima di apportare modifiche alla terapia o ai dosaggi di insulina.
+          </p>
+          <div class="version-tag">ContaCarbo v1.0 • PWA per iPhone & GitHub Pages</div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ==============================================
+         BOTTOM TAB BAR (iOS NATIVE STYLE)
+         ============================================== -->
+    <nav class="bottom-tab-bar" id="bottom-tab-bar">
+      <button type="button" class="tab-item active" data-tab="tab-calculator" id="nav-btn-calculator">
+        <div class="tab-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+          <span class="tab-carb-badge" id="tab-carb-badge">0g</span>
+        </div>
+        <span class="tab-label">Pasto</span>
+      </button>
+
+      <button type="button" class="tab-item" data-tab="tab-database" id="nav-btn-database">
+        <div class="tab-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <span class="tab-label">Cibi</span>
+      </button>
+
+      <button type="button" class="tab-item" data-tab="tab-log" id="nav-btn-log">
+        <div class="tab-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <span class="tab-label">Diario</span>
+      </button>
+
+      <button type="button" class="tab-item" data-tab="tab-settings" id="nav-btn-settings">
+        <div class="tab-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+        <span class="tab-label">Opzioni</span>
+      </button>
+    </nav>
+
+    <!-- ==============================================
+         MODAL / BOTTOM SHEET: SELETTORE PORZIONE ALIMENTO
+         ============================================== -->
+    <div class="bottom-sheet-overlay" id="portion-sheet-overlay">
+      <div class="bottom-sheet-content" id="portion-sheet">
+        <div class="sheet-grabber"></div>
+        <div class="sheet-header">
+          <div class="sheet-food-info">
+            <span class="sheet-food-icon" id="sheet-food-icon">🍎</span>
+            <div>
+              <h3 class="sheet-food-name" id="sheet-food-name">Mela</h3>
+              <span class="sheet-food-carbs-100" id="sheet-food-carbs-100">11.5 g CHO per 100g</span>
+            </div>
+          </div>
+          <button type="button" class="sheet-close-btn" id="close-portion-sheet-btn">✕</button>
+        </div>
+
+        <div class="sheet-body">
+          <!-- Live CHO Preview Box -->
+          <div class="portion-calculated-box">
+            <div class="calc-box-left">
+              <span class="calc-box-label">Carboidrati Calcolati</span>
+              <span class="calc-box-cho" id="sheet-calculated-cho">0.0 g CHO</span>
+            </div>
+            <div class="calc-box-right">
+              <span class="calc-box-sub" id="sheet-calculated-calories">0 kcal</span>
+            </div>
+          </div>
+
+          <!-- Weight Grams Input & Steppers -->
+          <div class="portion-input-section">
+            <label for="portion-grams-input" class="portion-label">Peso Alimento (grammi)</label>
+            <div class="portion-input-control">
+              <button type="button" class="stepper-btn" id="step-minus-10">-10</button>
+              <button type="button" class="stepper-btn" id="step-minus-1">-1</button>
+              <input type="number" id="portion-grams-input" value="100" min="1" max="5000" step="1" inputmode="numeric">
+              <span class="input-grams-tag">g</span>
+              <button type="button" class="stepper-btn" id="step-plus-1">+1</button>
+              <button type="button" class="stepper-btn" id="step-plus-10">+10</button>
+            </div>
+          </div>
+
+          <!-- Quick Portion Preset Chips -->
+          <div class="portion-presets-row" id="portion-presets-container">
+            <button type="button" class="preset-chip" id="preset-portion-typical">Porzione standard</button>
+            <button type="button" class="preset-chip" id="preset-portion-half">1/2 porzione</button>
+            <button type="button" class="preset-chip" id="preset-portion-double">Doppia</button>
+            <button type="button" class="preset-chip" id="preset-portion-100g">100 g</button>
+          </div>
+
+          <!-- Action Add to Plate -->
+          <button type="button" class="btn-primary-full btn-large" id="confirm-add-food-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Aggiungi al Piatto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==============================================
+         MODAL: CREA ALIMENTO PERSONALIZZATO
+         ============================================== -->
+    <div class="modal-overlay" id="custom-food-modal-overlay">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 class="modal-title">Nuovo Alimento</h3>
+          <button type="button" class="modal-close-btn" id="close-custom-modal-btn">✕</button>
+        </div>
+        <form id="custom-food-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="custom-name">Nome Alimento *</label>
+              <input type="text" id="custom-name" placeholder="Es. Torta di mele della nonna, barretta proteica..." required>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="custom-carbs">Carboidrati / 100g *</label>
+                <input type="number" id="custom-carbs" placeholder="Es. 45" step="0.1" min="0" max="100" required inputmode="decimal">
+              </div>
+              <div class="form-group">
+                <label for="custom-portion">Porzione tipica (g)</label>
+                <input type="number" id="custom-portion" placeholder="Es. 80" step="1" min="1" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="custom-category">Categoria</label>
+                <select id="custom-category" class="ios-select">
+                  <option value="pane_cereali">Pane & Forno</option>
+                  <option value="pasta_riso">Pasta & Cereali</option>
+                  <option value="frutta">Frutta</option>
+                  <option value="verdure">Verdure & Patate</option>
+                  <option value="legumi">Legumi</option>
+                  <option value="latticini">Latticini & Bev. Veg.</option>
+                  <option value="dolci_snack">Dolci & Snack</option>
+                  <option value="bevande">Bevande</option>
+                  <option value="carne_pesce_uova">Carne, Pesce & Uova</option>
+                  <option value="piatti_composti">Piatti Composti</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="custom-calories">Calorie (kcal / 100g)</label>
+                <input type="number" id="custom-calories" placeholder="Opzionale" step="1" min="0" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-group">
+                <label for="custom-sugars">Zuccheri (g)</label>
+                <input type="number" id="custom-sugars" placeholder="0" step="0.1" min="0" max="100" inputmode="decimal">
+              </div>
+              <div class="form-group">
+                <label for="custom-protein">Proteine (g)</label>
+                <input type="number" id="custom-protein" placeholder="0" step="0.1" min="0" max="100" inputmode="decimal">
+              </div>
+              <div class="form-group">
+                <label for="custom-fat">Grassi (g)</label>
+                <input type="number" id="custom-fat" placeholder="0" step="0.1" min="0" max="100" inputmode="decimal">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="cancel-custom-food-btn">Annulla</button>
+            <button type="submit" class="btn-primary" id="save-custom-food-btn">Salva Alimento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==============================================
+         MODAL: GUIDA IPHONE "AGGIUNGI A HOME"
+         ============================================== -->
+    <div class="modal-overlay" id="iphone-guide-overlay">
+      <div class="modal-dialog modal-guide">
+        <div class="modal-header">
+          <div class="guide-header-title">
+            <span class="apple-logo-badge"></span>
+            <h3 class="modal-title">Come installare su iPhone</h3>
+          </div>
+          <button type="button" class="modal-close-btn" id="close-guide-btn">✕</button>
+        </div>
+        <div class="modal-body guide-body">
+          <p class="guide-intro">Trasforma questa pagina web in un'app nativa a tutto schermo su iOS in 3 rapidi passaggi:</p>
+          
+          <div class="guide-steps">
+            <div class="guide-step">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <strong>Apri in Safari</strong>
+                <p>Assicurati di visualizzare questa pagina usando il browser <em>Safari</em> sul tuo iPhone.</p>
+              </div>
+            </div>
+
+            <div class="guide-step">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <strong>Tocca il pulsante Condividi</strong>
+                <p>Nella barra in basso di Safari, tocca l'icona con il quadrato e la freccia verso l'alto ( <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> ).</p>
+              </div>
+            </div>
+
+            <div class="guide-step">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <strong>Aggiungi alla schermata Home</strong>
+                <p>Scorri le opzioni verso il basso e tocca <strong>"Aggiungi alla schermata Home"</strong>, poi tocca <strong>"Aggiungi"</strong> in alto a destra.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-tip-box">
+            ✨ L'app comparirà sulla schermata principale con la sua icona dedicata, funzionerà a schermo intero senza barre del browser e sarà disponibile anche offline!
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-primary-full" id="close-guide-btn-action">Ho Capito</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast-notification">Notifica</div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
