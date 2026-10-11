@@ -1,9 +1,6 @@
 # 📱 ContaCarbo - Calcolatore Carboidrati & Bolo Diabete per iPhone
 
-**ContaCarbo** è una Web App progressiva (PWA) moderna, veloce e completamente ottimizzata per **iPhone** e Safari iOS, pensata specificamente per chi gestisce il diabete e deve calcolare la **conta dei carboidrati (CHO)** e il **bolo insulinico**.
-
-L'applicazione è progettata per essere ospitata gratuitamente e in 2 minuti su **GitHub Pages** senza necessità di configurare server o processi di compilazione complessi.
-
+**ContaCarbo** è una Web App progressiva (PWA) moderna, veloce e completamente ottimizzata per **iPhone** e **Android**, pensata specificamente per chi gestisce il diabete e deve usare la **conta dei carboidrati (CHO)** e il **bolo insulinico**.
 ---
 
 ## ✨ Funzionalità Principali
@@ -19,6 +16,7 @@ L'applicazione è progettata per essere ospitata gratuitamente e in 2 minuti su 
   - Oltre 75+ alimenti italiani ed internazionali (CREA/INRAN) suddivisi in categorie: Pane e Forno, Pasta e Cereali (pesi crudi e cotti), Frutta, Verdure, Legumi, Latticini, Dolci e Snack, Bevande, Piatti Composti (Pizza, Hamburger, Sushi, Lasagna) e alimenti a 0g CHO (Carne, Pesce, Uova, Olio EVO).
   - Ricerca istantanea dal vivo con evidenziazione.
   - Segnalibro ⭐ **Preferiti** per avere sempre a portata di mano gli alimenti quotidiani.
+  - 🌍 **Open Food Facts**: nella categoria "Tutti", scrivendo almeno 2 lettere (o un codice a barre EAN) l'app cerca anche tra i prodotti italiani di [Open Food Facts](https://world.openfoodfacts.org). I prodotti aggiunti al piatto vengono salvati in locale e restano disponibili offline. Dati © contributori Open Food Facts, licenza [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). Essendo un database collaborativo, verifica sempre i valori sull'etichetta.
 - ➕ **Alimenti Personalizzati**: Crea e salva qualsiasi alimento non presente nel database (con porzione, carboidrati per 100g, categoria e macronutrienti).
 - 📖 **Diario & Pasti Frequenti**: Salva i tuoi pasti registrati con orario e data, oppure salva combinazioni abituali (es. *"Colazione fette biscottate e marmellata"*) per ricaricarle nel piatto in un tocco.
 - 💾 **Backup & Ripristino (JSON)**: Esporta e importa tutti i tuoi dati con un clic per non perdere mai nulla.

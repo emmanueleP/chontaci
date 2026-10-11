@@ -1,11 +1,12 @@
 // Service Worker per funzionamento Offline su iPhone e GitHub Pages
-const CACHE_NAME = 'contacarbo-v1';
+const CACHE_NAME = 'contacarbo-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './data/foods.js',
+  './data/openfoodfacts.js',
   './manifest.json',
   './apple-touch-icon.png',
   './icon-192.png',
@@ -37,6 +38,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Solo richieste GET
   if (event.request.method !== 'GET') return;
+
+  // Le chiamate all'API Open Food Facts (altro dominio) vanno sempre in rete
+  if (new URL(event.request.url).origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

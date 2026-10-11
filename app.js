@@ -4,6 +4,7 @@
 // ==========================================================================
 
 import { FOOD_CATEGORIES, INITIAL_FOODS } from './data/foods.js';
+import { searchOffProducts, fetchOffByBarcode } from './data/openfoodfacts.js';
 
 // --- LocalStorage Keys ---
 const STORAGE_KEYS = {
@@ -46,8 +47,13 @@ const state = {
   frequentMeals: [],
   settings: { ...DEFAULT_SETTINGS },
   selectedFoodForSheet: null,
-  theme: 'dark'
+  theme: 'dark',
+  offResults: [],
+  offStatus: 'idle' // idle | loading | done | error
 };
+
+let offDebounceTimer;
+let offAbortController;
 
 // ==========================================================================
 // Initialization
@@ -358,6 +364,7 @@ function renderCategories() {
     btn.innerHTML = `<span>${cat.icon}</span> ${cat.name}`;
     btn.addEventListener('click', () => {
       state.activeCategory = cat.id;
+      scheduleOffSearch();
       renderCategories();
       renderFoodList();
     });
@@ -399,7 +406,9 @@ function renderFoodList() {
 
   container.innerHTML = '';
 
-  if (filtered.length === 0) {
+  const offActive = shouldUseOff(query);
+
+  if (filtered.length === 0 && !offActive) {
     container.innerHTML = `
       <div class="empty-state-card" style="padding: 24px;">
         <div class="empty-icon-circle">🔍</div>
@@ -410,7 +419,83 @@ function renderFoodList() {
     return;
   }
 
-  filtered.forEach((food) => {
+  filtered.forEach((food) => container.appendChild(buildFoodCard(food)));
+
+  if (offActive) renderOffSection(container);
+}
+
+// Open Food Facts viene interrogato solo con una ricerca testuale nella categoria "Tutti"
+function shouldUseOff(query) {
+  return !state.onlyFavorites && state.activeCategory === 'all' && query.length >= 2;
+}
+
+function renderOffSection(container) {
+  const section = document.createElement('div');
+  section.className = 'off-section';
+  section.style.cssText = 'margin-top:16px;';
+
+  const knownIds = new Set(state.foods.map((f) => f.id));
+  const results = state.offResults.filter((f) => !knownIds.has(f.id));
+
+  let statusHtml = '';
+  if (state.offStatus === 'loading') {
+    statusHtml = 'Ricerca su Open Food Facts…';
+  } else if (state.offStatus === 'error') {
+    statusHtml = 'Open Food Facts non raggiungibile (sei offline?)';
+  } else if (results.length === 0) {
+    statusHtml = 'Nessun prodotto trovato su Open Food Facts';
+  } else {
+    statusHtml = `${results.length} prodotti da Open Food Facts · verifica sempre i valori sull'etichetta`;
+  }
+
+  const header = document.createElement('p');
+  header.className = 'food-portion-hint';
+  header.style.cssText = 'margin:0 0 8px;padding:0 4px;';
+  header.textContent = `🌍 ${statusHtml}`;
+  section.appendChild(header);
+
+  if (state.offStatus !== 'loading') {
+    results.forEach((food) => section.appendChild(buildFoodCard(food)));
+  }
+  container.appendChild(section);
+}
+
+// Ricerca live con debounce (evita di superare i limiti di richieste dell'API)
+function scheduleOffSearch() {
+  clearTimeout(offDebounceTimer);
+  if (offAbortController) offAbortController.abort();
+
+  const query = state.searchQuery.trim();
+  if (!shouldUseOff(query.toLowerCase())) {
+    state.offResults = [];
+    state.offStatus = 'idle';
+    return;
+  }
+
+  state.offStatus = 'loading';
+  offDebounceTimer = setTimeout(async () => {
+    offAbortController = new AbortController();
+    const { signal } = offAbortController;
+    try {
+      if (/^\d{8,14}$/.test(query)) {
+        const product = await fetchOffByBarcode(query, { signal });
+        state.offResults = product ? [product] : [];
+      } else {
+        state.offResults = await searchOffProducts(query, { signal });
+      }
+      state.offStatus = 'done';
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.warn('Open Food Facts:', err);
+      state.offResults = [];
+      state.offStatus = 'error';
+    }
+    renderFoodList();
+  }, 500);
+}
+
+function buildFoodCard(food) {
+  {
     const isFav = state.favorites.includes(food.id);
     const card = document.createElement('div');
     card.className = 'food-card';
@@ -450,8 +535,8 @@ function renderFoodList() {
       toggleFavorite(food.id);
     });
 
-    container.appendChild(card);
-  });
+    return card;
+  }
 }
 
 // Toggle Favorite Food
@@ -958,6 +1043,7 @@ function setupEventListeners() {
   searchInput.addEventListener('input', (e) => {
     state.searchQuery = e.target.value;
     clearSearchBtn.style.display = state.searchQuery ? 'flex' : 'none';
+    scheduleOffSearch();
     renderFoodList();
   });
 
@@ -965,6 +1051,7 @@ function setupEventListeners() {
     searchInput.value = '';
     state.searchQuery = '';
     clearSearchBtn.style.display = 'none';
+    scheduleOffSearch();
     renderFoodList();
   });
 
@@ -973,6 +1060,7 @@ function setupEventListeners() {
   favFilterBtn.addEventListener('click', () => {
     state.onlyFavorites = !state.onlyFavorites;
     favFilterBtn.classList.toggle('active', state.onlyFavorites);
+    scheduleOffSearch();
     renderFoodList();
   });
 
@@ -1024,6 +1112,13 @@ function setupEventListeners() {
     if (!state.selectedFoodForSheet) return;
     const food = state.selectedFoodForSheet;
     const grams = Math.max(1, parseInt(portionInput.value, 10) || 100);
+
+    // Prodotti Open Food Facts: salvati in locale per usarli anche offline
+    if (food.source === 'openfoodfacts' && !state.foods.some((f) => f.id === food.id)) {
+      state.customFoods.push(food);
+      state.foods.unshift(food);
+      saveState(STORAGE_KEYS.CUSTOM_FOODS, state.customFoods);
+    }
 
     // Check if food already in plate -> update grams or add new
     const existingIndex = state.plate.findIndex(item => item.food.id === food.id);
